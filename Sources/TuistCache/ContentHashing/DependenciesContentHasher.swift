@@ -1,9 +1,10 @@
 import Foundation
+import TSCBasic
 import TuistCore
 import TuistGraph
 
 public protocol DependenciesContentHashing {
-    func hash(dependencies: [TargetDependency]) throws -> String
+    func hash(graphTarget: GraphTarget, hashedTargets: inout [GraphTarget: String]) throws -> String
 }
 
 /// `DependencyContentHasher`
@@ -19,14 +20,14 @@ public final class DependenciesContentHasher: DependenciesContentHashing {
 
     // MARK: - DependenciesContentHashing
 
-    public func hash(dependencies: [TargetDependency]) throws -> String {
-        let hashes = dependencies.map { try? hash(dependency: $0) }
+    public func hash(graphTarget: GraphTarget, hashedTargets: inout [GraphTarget: String]) throws -> String {
+        let hashes = graphTarget.target.dependencies.map { try? hash(dependency: $0, hashedTargets: &hashedTargets) }
         return hashes.compactMap { $0 }.joined()
     }
 
     // MARK: - Private
 
-    private func hash(dependency: TargetDependency) throws -> String {
+    private func hash(dependency: TargetDependency, hashedTargets _: inout [GraphTarget: String]) throws -> String {
         switch dependency {
         case let .target(name):
             return try contentHasher.hash("target-\(name)")
